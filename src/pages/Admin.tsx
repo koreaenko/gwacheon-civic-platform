@@ -15,7 +15,7 @@ export function Admin() {
   const [balloons, setBalloons] = useState<Balloon[]>([]);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const API_URL = 'http://localhost:3000/api';
+  const API_URL = '/api';
 
   useEffect(() => {
     if (isAuthenticated) {
