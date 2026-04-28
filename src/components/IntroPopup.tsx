@@ -129,6 +129,9 @@ export function IntroPopup({ onRegister }: IntroPopupProps) {
                 value={nickname}
                 onChange={(e) => setNickname(e.target.value)}
                 onPointerDown={(e) => e.stopPropagation()}
+                onTouchStart={(e) => e.stopPropagation()}
+                onClick={(e) => e.currentTarget.focus()}
+                style={{ fontSize: '16px', userSelect: 'text', WebkitUserSelect: 'text' }}
                 placeholder="사용할 닉네임 (최대 10자)"
                 className="w-full px-4 py-3 rounded-xl border border-violet-200/60 bg-white/80 focus:outline-none focus:ring-2 focus:ring-violet-400/50 focus:border-transparent font-medium text-sm placeholder:text-slate-400 transition-all"
                 maxLength={10}
