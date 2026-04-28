@@ -131,7 +131,7 @@ export function SkyCanvas() {
       window.removeEventListener("resize", handleResize);
       Matter.Runner.stop(runner);
       Matter.Engine.clear(engine);
-      Matter.Mouse.clearSourceEvents(mouse);
+      // Matter.Mouse.clearSourceEvents(mouse);
     };
   }, []);
 
