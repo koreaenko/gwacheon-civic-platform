@@ -169,3 +169,8 @@ input, textarea, button, select, label, a {
 .pb-safe {
   padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
+input, textarea {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  touch-action: manipulation !important;
+}
