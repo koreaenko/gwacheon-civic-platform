@@ -98,10 +98,10 @@ export function IntroPopup({ onRegister }: IntroPopupProps) {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/25 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/25 backdrop-blur-md p-4" style={{ touchAction: 'auto', userSelect: 'auto', WebkitUserSelect: 'auto' }}>
       <div 
         className="glass-strong rounded-3xl p-6 md:p-8 max-w-md w-full shadow-2xl animate-fade-in-up"
-        style={{ animationDuration: '0.4s' }}
+        style={{ animationDuration: '0.4s', touchAction: 'auto', userSelect: 'auto', WebkitUserSelect: 'auto' } as React.CSSProperties}
       >
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">

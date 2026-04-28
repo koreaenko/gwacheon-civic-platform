@@ -37,11 +37,23 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
-  user-select: none;
-  touch-action: none;
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 입력 필드와 버튼은 항상 터치/선택 가능 */
+input, textarea, button, select, label, a {
+  user-select: auto;
+  touch-action: auto;
+  -webkit-user-select: auto;
+}
+
+/* 풍선 캔버스 영역만 터치 제한 */
+.canvas-touch-none {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* ===== Animations ===== */
