@@ -94,9 +94,9 @@ export function SkyCanvas() {
     ];
     Matter.World.add(engine.world, walls);
 
-    const mouse = Matter.Mouse.create(containerRef.current);
-    const mc = Matter.MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
-    Matter.World.add(engine.world, mc);
+    //const mouse = Matter.Mouse.create(containerRef.current);
+    //const mc = Matter.MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
+    //Matter.World.add(engine.world, mc);
 
     Matter.Events.on(engine, "afterUpdate", () => {
       Matter.Composite.allBodies(engine.world).forEach(body => {
