@@ -16,10 +16,11 @@ export interface BalloonData {
 interface BalloonProps {
   data: BalloonData;
   onLike: (id: string) => void;
+  onDragStart?: (id: string, clientX: number, clientY: number) => void;
 }
 
 export const Balloon = forwardRef<HTMLDivElement, BalloonProps>(
-  ({ data, onLike }, ref) => {
+  ({ data, onLike, onDragStart }, ref) => {
     return (
       <div
         ref={ref}
@@ -34,6 +35,12 @@ export const Balloon = forwardRef<HTMLDivElement, BalloonProps>(
           transformOrigin: "center center",
           touchAction: "none",
           boxShadow: "inset 0 -12px 24px rgba(0,0,0,0.08), 0 8px 24px rgba(0,0,0,0.06), inset 0 2px 8px rgba(255,255,255,0.6)",
+        }}
+        onPointerDown={(e) => {
+          // 버튼 클릭은 드래그하지 않음
+          if ((e.target as HTMLElement).closest('button')) return;
+          e.preventDefault();
+          onDragStart?.(data.id, e.clientX, e.clientY);
         }}
       >
         <div className="flex flex-col items-center justify-center p-4 text-center h-full w-full">

@@ -1,8 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
-import dotenv from 'dotenv';
-dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL || 'YOUR_SUPABASE_URL';
-const supabaseKey = process.env.SUPABASE_KEY || 'YOUR_SUPABASE_KEY';
+// Vercel 환경에서는 process.env에 직접 주입됨. dotenv는 로컬 개발용.
+try { const dotenv = await import('dotenv'); dotenv.config(); } catch {}
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+
+if (!supabaseUrl || !supabaseKey) {
+  console.error('❌ SUPABASE_URL 또는 SUPABASE_KEY 환경변수가 설정되지 않았습니다.');
+}
+
+export const supabase = createClient(supabaseUrl || '', supabaseKey || '');

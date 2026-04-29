@@ -56,9 +56,70 @@ export function SkyCanvas() {
   const [isRankingOpen, setIsRankingOpen] = useState(false);
   const [rankings, setRankings] = useState<{nickname: string, score: number}[]>([]);
 
+  /* ── 커스텀 드래그 시스템 (MouseConstraint 대체) ── */
+  const dragRef = useRef<{
+    constraint: Matter.Constraint | null;
+    pointBody: Matter.Body | null;
+  }>({ constraint: null, pointBody: null });
+
+  const handleBalloonDragStart = useCallback((id: string, clientX: number, clientY: number) => {
+    if (!engineRef.current) return;
+    const body = Matter.Composite.allBodies(engineRef.current.world).find(b => b.label === id);
+    if (!body) return;
+
+    // 포인터 위치에 정적 바디 생성
+    const pointBody = Matter.Bodies.circle(clientX, clientY, 1, {
+      isStatic: true,
+      render: { visible: false },
+      collisionFilter: { group: -1, category: 0, mask: 0 }
+    });
+    Matter.World.add(engineRef.current.world, pointBody);
+
+    // 포인터와 풍선 사이에 제약 조건 생성
+    const constraint = Matter.Constraint.create({
+      bodyA: pointBody,
+      bodyB: body,
+      stiffness: 0.1,
+      damping: 0.1,
+      render: { visible: false }
+    });
+    Matter.World.add(engineRef.current.world, constraint);
+    dragRef.current = { constraint, pointBody };
+  }, []);
+
+  // 글로벌 포인터 이동/해제 핸들러
+  useEffect(() => {
+    const handleMove = (e: PointerEvent) => {
+      if (dragRef.current.pointBody) {
+        Matter.Body.setPosition(dragRef.current.pointBody, { x: e.clientX, y: e.clientY });
+      }
+    };
+    const handleUp = () => {
+      if (engineRef.current && dragRef.current.constraint) {
+        Matter.World.remove(engineRef.current.world, dragRef.current.constraint);
+        if (dragRef.current.pointBody) {
+          Matter.World.remove(engineRef.current.world, dragRef.current.pointBody);
+        }
+        dragRef.current = { constraint: null, pointBody: null };
+      }
+    };
+
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
+    };
+  }, []);
+
   const fetchRankings = useCallback(() => {
     fetch(`${API_URL}/rankings`)
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error(`Rankings API error: ${res.status}`);
+        return res.json();
+      })
       .then(data => setRankings(data))
       .catch(err => console.error("Failed to load rankings", err));
   }, []);
@@ -94,9 +155,7 @@ export function SkyCanvas() {
     ];
     Matter.World.add(engine.world, walls);
 
-    //const mouse = Matter.Mouse.create(containerRef.current);
-    //const mc = Matter.MouseConstraint.create(engine, { mouse, constraint: { stiffness: 0.2, render: { visible: false } } });
-    //Matter.World.add(engine.world, mc);
+    // MouseConstraint 제거 → 커스텀 드래그 시스템으로 대체 (모바일 호환)
 
     Matter.Events.on(engine, "afterUpdate", () => {
       Matter.Composite.allBodies(engine.world).forEach(body => {
@@ -121,17 +180,27 @@ export function SkyCanvas() {
     };
     window.addEventListener("resize", handleResize);
 
-    fetch(`${API_URL}/balloons`).then(r => r.json()).then(data => {
-      data.forEach((b: any, i: number) => {
-        setTimeout(() => addNewBalloon(b.author, b.text, b.likes, b.id, b.colorClass), i * 300);
-      });
-    }).catch(err => console.error("Failed to load balloons", err));
+    // 서버에서 풍선 데이터 로드 (에러 핸들링 강화)
+    fetch(`${API_URL}/balloons`)
+      .then(r => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          console.error("Expected array from /api/balloons, got:", data);
+          return;
+        }
+        data.forEach((b: any, i: number) => {
+          setTimeout(() => addNewBalloon(b.author, b.text, b.likes, b.id, b.colorClass), i * 300);
+        });
+      })
+      .catch(err => console.error("Failed to load balloons:", err));
 
     return () => {
       window.removeEventListener("resize", handleResize);
       Matter.Runner.stop(runner);
       Matter.Engine.clear(engine);
-      // Matter.Mouse.clearSourceEvents(mouse);
     };
   }, []);
 
@@ -333,7 +402,13 @@ export function SkyCanvas() {
       {/* ── Balloons ── */}
       {balloons.map(balloon => (
         !balloon.isHiddenFromCanvas && (
-          <Balloon key={balloon.id} ref={(el) => { balloonRefs.current[balloon.id] = el; }} data={balloon} onLike={handleLike} />
+          <Balloon
+            key={balloon.id}
+            ref={(el) => { balloonRefs.current[balloon.id] = el; }}
+            data={balloon}
+            onLike={handleLike}
+            onDragStart={handleBalloonDragStart}
+          />
         )
       ))}
 
