@@ -8,7 +8,8 @@ import { containsProfanity } from "../lib/filter";
 import { List, MessageCircle, Heart, Trophy, X, Sparkles } from "lucide-react";
 
 const MAX_BALLOONS = 40;
-const BALLOON_RADIUS = 70;
+const BALLOON_RADIUS = 50;
+const TOP_FIXED_BALLOONS = 3; // 상위 3개는 항상 고정
 const API_URL = '/api';
 
 /* ── floating particles background ── */
@@ -209,8 +210,10 @@ export function SkyCanvas() {
     const visible = balloons.filter(b => !b.isHiddenFromCanvas);
     if (visible.length > MAX_BALLOONS) {
       const cnt = visible.length - MAX_BALLOONS;
-      const top10 = [...visible].sort((a,b) => b.likes - a.likes).slice(0,10).map(b => b.id);
-      const targets = visible.filter(b => !top10.includes(b.id)).slice(0, cnt).map(b => b.id);
+      // 상위 3개만 고정 (좋아요 기준)
+      const topFixed = [...visible].sort((a,b) => b.likes - a.likes).slice(0, TOP_FIXED_BALLOONS).map(b => b.id);
+      // 오래된 순으로 삭제 (먼저 추가된 풍선부터)
+      const targets = visible.filter(b => !topFixed.includes(b.id)).slice(0, cnt).map(b => b.id);
 
       setBalloons(prev => prev.map(b => targets.includes(b.id) ? { ...b, opacity: 0 } : b));
       setTimeout(() => {

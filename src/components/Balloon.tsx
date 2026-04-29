@@ -29,8 +29,8 @@ export const Balloon = forwardRef<HTMLDivElement, BalloonProps>(
           data.colorClass
         )}
         style={{
-          width: "140px",
-          height: "140px",
+          width: "100px",
+          height: "100px",
           opacity: data.opacity,
           transformOrigin: "center center",
           touchAction: "none",
