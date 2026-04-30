@@ -16,6 +16,7 @@ export function ChatInput({ onSend }: ChatInputProps) {
     const updateStats = () => {
       setAuthor(localStorage.getItem("nickname") || "");
       const today = new Date().toISOString().split("T")[0];
+
       const dailyPostsString = localStorage.getItem("dailyPosts");
       if (dailyPostsString) {
         const dailyPosts = JSON.parse(dailyPostsString);
@@ -41,9 +42,10 @@ export function ChatInput({ onSend }: ChatInputProps) {
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!author.trim()) {
-      alert("닉네임 등록 후 이용해주세요.");
+      alert("열혈시민 등록 후 이용해주세요.");
       return;
     }
+
     if (message.trim() && onSend(author.trim(), message.trim())) {
       setMessage("");
     }
@@ -53,28 +55,28 @@ export function ChatInput({ onSend }: ChatInputProps) {
     <div className="fixed bottom-0 left-0 right-0 z-50" style={{ animation: "slide-in-bottom 0.5s cubic-bezier(0.16,1,0.3,1)" }}>
       <div className="glass-strong border-t-0 rounded-t-3xl px-4 pt-3 pb-safe shadow-[0_-8px_32px_rgba(0,0,0,0.06)]">
         <div className="mx-auto flex max-w-2xl flex-col gap-1.5">
-          <div className="flex justify-end gap-2 px-1 text-xs font-bold text-slate-500">
-            <div className="glass flex items-center gap-1.5 rounded-xl px-3 py-1.5">
-              ?뱷 <span className={petitionsLeft > 0 ? "text-sky-500" : "text-slate-400"}>{petitionsLeft}/3</span>
-            </div>
-            <div className="glass flex items-center gap-1.5 rounded-xl px-3 py-1.5">
-              ?뮇 <span className={heartsLeft > 0 ? "text-pink-500" : "text-slate-400"}>{heartsLeft}/3</span>
-            </div>
-          </div>
-
-          <div className="flex justify-start px-1">
+          <div className="flex items-center justify-between gap-2 px-1">
             <a
               href="https://linktr.ee/2026jckim?utm_source=linktree_profile_share&ltsid=47f7fea8-fd9b-480d-8317-8e67264b6ef5"
               target="_blank"
               rel="noreferrer"
-              className="glass group inline-flex items-center gap-2 rounded-xl border border-white/60 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-white/80 hover:shadow-md"
+              className="glass group inline-flex min-w-0 items-center gap-2 rounded-xl border border-white/60 px-3 py-2 text-xs font-bold text-slate-700 shadow-sm transition-all hover:bg-white/80 hover:shadow-md"
             >
-              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-500 text-white shadow-sm shadow-sky-200/60">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-500 text-white shadow-sm shadow-sky-200/60">
                 <LayoutGrid className="h-3.5 w-3.5" />
               </span>
-              <span className="leading-none">김종천 공약보기</span>
-              <ExternalLink className="h-3.5 w-3.5 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <span className="truncate leading-none">김종천 공약보기</span>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </a>
+
+            <div className="flex shrink-0 gap-2 text-xs font-bold text-slate-500">
+              <div className="glass flex items-center gap-1.5 rounded-xl px-3 py-1.5">
+                📝 <span className={petitionsLeft > 0 ? "text-sky-500" : "text-slate-400"}>{petitionsLeft}/3</span>
+              </div>
+              <div className="glass flex items-center gap-1.5 rounded-xl px-3 py-1.5">
+                💖 <span className={heartsLeft > 0 ? "text-pink-500" : "text-slate-400"}>{heartsLeft}/3</span>
+              </div>
+            </div>
           </div>
 
           <form
