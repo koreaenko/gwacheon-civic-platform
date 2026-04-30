@@ -10,13 +10,12 @@ export function IntroPopup({ onRegister }: IntroPopupProps) {
   const [hideToday, setHideToday] = useState(false);
   const [nickname, setNickname] = useState('');
   const [error, setError] = useState('');
-  const [isRegistered, setIsRegistered] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(() => Boolean(localStorage.getItem('nickname')));
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const savedNickname = localStorage.getItem('nickname');
     if (savedNickname) {
-      setIsRegistered(true);
       // 출석 체크 (실패해도 진행)
       fetch('/api/users/attendance', {
         method: 'POST',
@@ -75,7 +74,7 @@ export function IntroPopup({ onRegister }: IntroPopupProps) {
           if (onRegister) onRegister();
           setIsOpen(false);
         }
-      } catch (err) {
+      } catch {
         // 서버 미연결 시 로컬로 바로 진행
         localStorage.setItem('nickname', nickname.trim());
         localStorage.setItem('deviceToken', deviceToken);

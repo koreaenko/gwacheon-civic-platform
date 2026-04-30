@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 interface Balloon {
   id: string;
@@ -17,13 +17,7 @@ export function Admin() {
 
   const API_URL = '/api';
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchBalloons();
-    }
-  }, [isAuthenticated]);
-
-  const fetchBalloons = async () => {
+  const fetchBalloons = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/admin/balloons`);
       const data = await res.json();
@@ -32,7 +26,16 @@ export function Admin() {
       console.error(err);
       alert('서버 연결에 실패했습니다. 백엔드 서버가 켜져 있는지 확인하세요.');
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const timer = window.setTimeout(() => {
+        void fetchBalloons();
+      }, 0);
+      return () => window.clearTimeout(timer);
+    }
+  }, [fetchBalloons, isAuthenticated]);
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();

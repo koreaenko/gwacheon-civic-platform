@@ -11,24 +11,30 @@ const MAX_BALLOONS = 40;
 const BALLOON_RADIUS = 50;
 const TOP_FIXED_BALLOONS = 3; // 상위 3개는 항상 고정
 const API_URL = '/api';
+const PARTICLE_COLORS = ['#7dd3fc', '#f9a8d4', '#fde68a', '#a5b4fc', '#86efac'];
+const FLOATING_PARTICLES = Array.from({ length: 18 }, (_, i) => ({
+  id: i,
+  size: Math.random() * 6 + 3,
+  left: Math.random() * 100,
+  delay: Math.random() * 12,
+  duration: Math.random() * 10 + 14,
+  opacity: Math.random() * 0.25 + 0.08,
+  color: PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)],
+}));
+
+interface ServerBalloon {
+  id: string;
+  author: string;
+  text: string;
+  likes: number;
+  colorClass?: string;
+}
 
 /* ── floating particles background ── */
 function FloatingParticles() {
-  const particles = useMemo(() => 
-    Array.from({ length: 18 }, (_, i) => ({
-      id: i,
-      size: Math.random() * 6 + 3,
-      left: Math.random() * 100,
-      delay: Math.random() * 12,
-      duration: Math.random() * 10 + 14,
-      opacity: Math.random() * 0.25 + 0.08,
-      color: ['#7dd3fc','#f9a8d4','#fde68a','#a5b4fc','#86efac'][Math.floor(Math.random()*5)],
-    }))
-  , []);
-
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {particles.map(p => (
+      {FLOATING_PARTICLES.map(p => (
         <div
           key={p.id}
           className="absolute rounded-full"
@@ -181,23 +187,6 @@ export function SkyCanvas() {
     };
     window.addEventListener("resize", handleResize);
 
-    // 서버에서 풍선 데이터 로드 (에러 핸들링 강화)
-    fetch(`${API_URL}/balloons`)
-      .then(r => {
-        if (!r.ok) throw new Error(`API error: ${r.status}`);
-        return r.json();
-      })
-      .then(data => {
-        if (!Array.isArray(data)) {
-          console.error("Expected array from /api/balloons, got:", data);
-          return;
-        }
-        data.forEach((b: any, i: number) => {
-          setTimeout(() => addNewBalloon(b.author, b.text, b.likes, b.id, b.colorClass), i * 300);
-        });
-      })
-      .catch(err => console.error("Failed to load balloons:", err));
-
     return () => {
       window.removeEventListener("resize", handleResize);
       Matter.Runner.stop(runner);
@@ -207,7 +196,7 @@ export function SkyCanvas() {
 
   /* ── cleanup old balloons ── */
   useEffect(() => {
-    const visible = balloons.filter(b => !b.isHiddenFromCanvas);
+    const visible = balloons.filter(b => !b.isHiddenFromCanvas && b.opacity !== 0);
     if (visible.length > MAX_BALLOONS) {
       const cnt = visible.length - MAX_BALLOONS;
       // 상위 3개만 고정 (좋아요 기준)
@@ -215,8 +204,10 @@ export function SkyCanvas() {
       // 오래된 순으로 삭제 (먼저 추가된 풍선부터)
       const targets = visible.filter(b => !topFixed.includes(b.id)).slice(0, cnt).map(b => b.id);
 
-      setBalloons(prev => prev.map(b => targets.includes(b.id) ? { ...b, opacity: 0 } : b));
-      setTimeout(() => {
+      window.setTimeout(() => {
+        setBalloons(prev => prev.map(b => targets.includes(b.id) ? { ...b, opacity: 0 } : b));
+      }, 0);
+      window.setTimeout(() => {
         setBalloons(prev => prev.map(b => targets.includes(b.id) ? { ...b, isHiddenFromCanvas: true } : b));
         if (engineRef.current) {
           const world = engineRef.current.world;
@@ -227,7 +218,7 @@ export function SkyCanvas() {
         }
       }, 1000);
     }
-  }, [balloons.length]);
+  }, [balloons]);
 
   const addNewBalloon = useCallback((author: string, text: string, initialLikes = 0, serverId?: string, serverColor?: string) => {
     if (containsProfanity(text)) { showToast("부적절한 단어가 포함되어 있습니다. 바르고 고운 말을 사용해주세요."); return false; }
@@ -260,7 +251,25 @@ export function SkyCanvas() {
     }
     setBalloons(prev => [...prev, { id, author, text, likes: initialLikes, colorClass, opacity: 1, hasLiked }]);
     return true;
-  }, []);
+  }, [showToast]);
+
+  useEffect(() => {
+    fetch(`${API_URL}/balloons`)
+      .then(r => {
+        if (!r.ok) throw new Error(`API error: ${r.status}`);
+        return r.json();
+      })
+      .then(data => {
+        if (!Array.isArray(data)) {
+          console.error("Expected array from /api/balloons, got:", data);
+          return;
+        }
+        data.forEach((b: ServerBalloon, i: number) => {
+          window.setTimeout(() => addNewBalloon(b.author, b.text, b.likes, b.id, b.colorClass), i * 300);
+        });
+      })
+      .catch(err => console.error("Failed to load balloons:", err));
+  }, [addNewBalloon]);
 
   const handleLike = useCallback((id: string) => {
     const today = new Date().toISOString().split('T')[0];
@@ -293,7 +302,7 @@ export function SkyCanvas() {
         if (el) { const cw = parseFloat(el.style.width)||(BALLOON_RADIUS*2); el.style.width=`${cw*1.1}px`; el.style.height=`${cw*1.1}px`; }
       }
     }
-  }, []);
+  }, [showToast]);
 
   return (
     <div ref={containerRef} className="fixed inset-0 w-full h-full overflow-hidden">
