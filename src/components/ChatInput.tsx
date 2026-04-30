@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { useState, useEffect } from "react";
-import { Send } from "lucide-react";
+import { ExternalLink, LayoutGrid, Send } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (author: string, message: string) => boolean;
@@ -44,6 +44,23 @@ export function ChatInput({ onSend }: ChatInputProps) {
     <div className="fixed bottom-0 left-0 right-0 z-50" style={{ animation: 'slide-in-bottom 0.5s cubic-bezier(0.16,1,0.3,1)' }}>
       <div className="glass-strong border-t-0 rounded-t-3xl px-4 pt-3 pb-safe shadow-[0_-8px_32px_rgba(0,0,0,0.06)]">
         <div className="max-w-2xl mx-auto flex flex-col gap-2">
+          <div className="flex justify-start px-1">
+            <a
+              href="https://linktr.ee/2026jckim?utm_source=linktree_profile_share&ltsid=47f7fea8-fd9b-480d-8317-8e67264b6ef5"
+              target="_blank"
+              rel="noreferrer"
+              className="glass group inline-flex items-center gap-2 rounded-2xl border border-white/60 px-4 py-3 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-white/80 hover:shadow-md"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-blue-500 text-white shadow-sm shadow-sky-200/60">
+                <LayoutGrid className="h-4 w-4" />
+              </span>
+              <span className="text-left leading-tight">
+                김종천 공약보기
+              </span>
+              <ExternalLink className="h-4 w-4 text-slate-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          </div>
+
           {/* Status badges */}
           <div className="flex justify-end gap-2 text-xs font-bold text-slate-500 px-1">
             <div className="glass px-3 py-1.5 rounded-xl flex items-center gap-1.5">
