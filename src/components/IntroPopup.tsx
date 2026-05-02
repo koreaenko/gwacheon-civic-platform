@@ -5,6 +5,17 @@ interface IntroPopupProps {
   onRegister?: () => void;
 }
 
+const ATTENDANCE_STORAGE_KEY = 'lastAttendanceClaimDate';
+
+function getTodayKeyInSeoul() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
 export function IntroPopup({ onRegister }: IntroPopupProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hideToday, setHideToday] = useState(false);
@@ -15,13 +26,22 @@ export function IntroPopup({ onRegister }: IntroPopupProps) {
 
   useEffect(() => {
     const savedNickname = localStorage.getItem('nickname');
-    if (savedNickname) {
-      // 출석 체크 (실패해도 진행)
+    const todayKey = getTodayKeyInSeoul();
+
+    if (savedNickname && localStorage.getItem(ATTENDANCE_STORAGE_KEY) !== todayKey) {
       fetch('/api/users/attendance', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ nickname: savedNickname })
-      }).catch(() => {});
+      })
+        .then(async (res) => {
+          if (!res.ok) throw new Error('Attendance request failed');
+          return res.json();
+        })
+        .then(() => {
+          localStorage.setItem(ATTENDANCE_STORAGE_KEY, todayKey);
+        })
+        .catch(() => {});
     }
 
     const hideUntil = localStorage.getItem('hideIntroUntil');
