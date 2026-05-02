@@ -5,9 +5,20 @@ import { supabase } from './db.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ATTENDANCE_TZ = 'Asia/Seoul';
+const ATTENDANCE_REWARD = 5;
 
 app.use(cors());
 app.use(bodyParser.json());
+
+function getDateKeyInSeoul(dateInput = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: ATTENDANCE_TZ,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(dateInput));
+}
 
 // 1. 모든 풍선 가져오기 (메인 화면용 - 숨김 처리되거나 병합된 것은 제외)
 app.get('/api/balloons', async (req, res) => {
@@ -188,18 +199,44 @@ app.post('/api/users/register', async (req, res) => {
   }
 });
 
-// 7. 유저 출석체크 (+1점)
+// 7. 유저 출석체크 (한국 시간 기준 1일 1회, +5점)
 app.post('/api/users/attendance', async (req, res) => {
   try {
     const { nickname } = req.body;
     if (!nickname) return res.status(400).json({ error: "Nickname required" });
 
-    const { error } = await supabase.rpc('increment_user_score', { user_nickname: nickname, amount: 1 });
-    if (error) {
-      console.error('[POST /api/users/attendance] Supabase error:', error);
-      return res.status(500).json({ error: error.message });
+    const { data: user, error: fetchError } = await supabase
+      .from('users')
+      .select('score, lastAttendanceAt')
+      .eq('nickname', nickname)
+      .single();
+
+    if (fetchError) {
+      console.error('[POST /api/users/attendance] Supabase fetch error:', fetchError);
+      return res.status(500).json({ error: fetchError.message });
     }
-    res.json({ success: true });
+
+    const todayKey = getDateKeyInSeoul();
+    const lastAttendanceKey = user?.lastAttendanceAt ? getDateKeyInSeoul(user.lastAttendanceAt) : null;
+
+    if (lastAttendanceKey === todayKey) {
+      return res.json({ success: true, awarded: false, score: user?.score ?? 0 });
+    }
+
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({
+        score: (user?.score ?? 0) + ATTENDANCE_REWARD,
+        lastAttendanceAt: new Date().toISOString(),
+      })
+      .eq('nickname', nickname);
+
+    if (updateError) {
+      console.error('[POST /api/users/attendance] Supabase update error:', updateError);
+      return res.status(500).json({ error: updateError.message });
+    }
+
+    res.json({ success: true, awarded: true, amount: ATTENDANCE_REWARD, score: (user?.score ?? 0) + ATTENDANCE_REWARD });
   } catch (err) {
     console.error('[POST /api/users/attendance] Unexpected error:', err);
     res.status(500).json({ error: 'Internal server error' });
