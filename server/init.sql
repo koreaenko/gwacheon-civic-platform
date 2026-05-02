@@ -3,6 +3,9 @@
 -- DROP TABLE IF EXISTS balloons; DROP TABLE IF EXISTS users;
 -- DROP FUNCTION IF EXISTS increment_user_score; DROP FUNCTION IF EXISTS increment_balloon_likes; DROP FUNCTION IF EXISTS merge_balloons;
 
+-- 기존 users 테이블을 유지하는 경우 아래 ALTER도 함께 실행하세요.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS "lastAttendanceAt" TIMESTAMP WITH TIME ZONE;
+
 -- 1. balloons 테이블 생성 (camelCase 컬럼은 반드시 큰따옴표 필요)
 CREATE TABLE IF NOT EXISTS balloons (
     id TEXT PRIMARY KEY,
@@ -20,6 +23,7 @@ CREATE TABLE IF NOT EXISTS users (
     nickname TEXT PRIMARY KEY,
     "deviceToken" TEXT UNIQUE NOT NULL,
     score INTEGER DEFAULT 0,
+    "lastAttendanceAt" TIMESTAMP WITH TIME ZONE,
     "createdAt" TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
