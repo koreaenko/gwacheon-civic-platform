@@ -10,6 +10,7 @@ export interface BalloonData {
   colorClass: string;
   opacity: number;
   hasLiked: boolean;
+  createdAt?: string;
   isHiddenFromCanvas?: boolean;
 }
 
