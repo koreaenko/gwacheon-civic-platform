@@ -389,6 +389,9 @@ export function SkyCanvas() {
                 <X className="w-4 h-4" />
               </button>
             </div>
+            <div className="mb-4 rounded-2xl bg-sky-50/90 border border-sky-100 px-4 py-3 text-xs text-slate-600 leading-relaxed">
+              점수 안내: 제안 작성 `+10점`, 공감 누르기 `+2점`, 출석 체크 `하루 1회 +5점`
+            </div>
             <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
               {rankings.length === 0 ? (
                 <div className="text-center py-10 text-slate-400 font-medium text-sm">아직 랭킹 데이터가 없습니다.<br/>첫 번째 열혈시민이 되어보세요!</div>
