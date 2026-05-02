@@ -28,6 +28,7 @@ interface ServerBalloon {
   text: string;
   likes: number;
   colorClass?: string;
+  createdAt?: string;
 }
 
 /* ── floating particles background ── */
@@ -138,7 +139,13 @@ export function SkyCanvas() {
 
   const sortedBalloons = useMemo(() => {
     const list = [...balloons];
-    if (sortMode === 'latest') return list.reverse();
+    if (sortMode === 'latest') {
+      return list.sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+    }
     return list.sort((a, b) => b.likes - a.likes);
   }, [balloons, sortMode]);
 
@@ -220,7 +227,7 @@ export function SkyCanvas() {
     }
   }, [balloons]);
 
-  const addNewBalloon = useCallback((author: string, text: string, initialLikes = 0, serverId?: string, serverColor?: string) => {
+  const addNewBalloon = useCallback((author: string, text: string, initialLikes = 0, serverId?: string, serverColor?: string, createdAt?: string) => {
     if (containsProfanity(text)) { showToast("부적절한 단어가 포함되어 있습니다. 바르고 고운 말을 사용해주세요."); return false; }
     const today = new Date().toISOString().split('T')[0];
     if (!serverId) {
@@ -249,7 +256,7 @@ export function SkyCanvas() {
       fetch(`${API_URL}/balloons`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({id,author,text,likes:0,colorClass}) }).catch(console.error);
       showToast(`📝 첫 제안 등록 완료! (+10점)`);
     }
-    setBalloons(prev => [...prev, { id, author, text, likes: initialLikes, colorClass, opacity: 1, hasLiked }]);
+    setBalloons(prev => [...prev, { id, author, text, likes: initialLikes, colorClass, opacity: 1, hasLiked, createdAt: createdAt || new Date().toISOString() }]);
     return true;
   }, [showToast]);
 
@@ -265,7 +272,7 @@ export function SkyCanvas() {
           return;
         }
         data.forEach((b: ServerBalloon, i: number) => {
-          window.setTimeout(() => addNewBalloon(b.author, b.text, b.likes, b.id, b.colorClass), i * 300);
+          window.setTimeout(() => addNewBalloon(b.author, b.text, b.likes, b.id, b.colorClass, b.createdAt), i * 300);
         });
       })
       .catch(err => console.error("Failed to load balloons:", err));
